@@ -1,4 +1,4 @@
-import React from "react";
+import React, { createRef } from "react";
 import CartCss from "./Cart.module.css";
 import { FiShoppingCart } from "react-icons/fi";
 import { AppStateContext } from "./AppState";
@@ -10,18 +10,36 @@ interface State {
 }
 
 class Cart extends React.Component<Props, State> {
+  #refContainer: React.RefObject<HTMLDivElement>;
   constructor(props: Props) {
     super(props);
     this.state = {
       isOpened: false,
     };
+    this.#refContainer = createRef();
   }
+
+  handleClickOutside = (e: MouseEvent) => {
+    if (!this.#refContainer.current?.contains(e.target as Node)) {
+      this.setState((prevState) => {
+        return { isOpened: false };
+      });
+    }
+  };
 
   handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     this.setState((prevState) => {
       return { isOpened: !prevState.isOpened };
     });
   };
+
+  componentDidMount() {
+    window.addEventListener("click", this.handleClickOutside);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("click", this.handleClickOutside);
+  }
 
   render() {
     return (
@@ -31,7 +49,7 @@ class Cart extends React.Component<Props, State> {
             return sum + item.quantity;
           }, 0);
           return (
-            <div className={CartCss.cartContainer}>
+            <div className={CartCss.cartContainer} ref={this.#refContainer}>
               <button
                 type="button"
                 className={CartCss.button}
